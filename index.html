@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jazzy.Mix — Rate Card</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --orange: #e66a05;
+    --orange-dim: rgba(230,106,5,0.15);
+    --orange-border: rgba(230,106,5,0.35);
+    --bg: #080407;
+    --surface: #110a0e;
+    --surface2: #1a0f14;
+    --text: #f0e8e0;
+    --muted: rgba(240,232,224,0.45);
+    --green: #25d366;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 80% 10%, rgba(230,106,5,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 60% at 10% 80%, rgba(100,20,60,0.2) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+  }
+
+  .page {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 48px;
+    flex-wrap: wrap;
+  }
+  .brand { display: flex; flex-direction: column; gap: 4px; }
+  .brand-label { font-size: 0.72em; letter-spacing: 4px; text-transform: uppercase; color: var(--orange); font-weight: 600; }
+  .brand-name { font-family: 'Bebas Neue', cursive; font-size: 4.2em; line-height: 0.9; letter-spacing: 2px; color: var(--text); }
+  .brand-sub { font-size: 0.78em; color: var(--muted); letter-spacing: 1px; margin-top: 6px; }
+  .header-tag { background: var(--orange-dim); border: 1px solid var(--orange-border); border-radius: 6px; padding: 10px 18px; text-align: right; }
+  .header-tag span { display: block; font-size: 0.72em; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+  .header-tag strong { font-family: 'Bebas Neue', cursive; font-size: 1.5em; color: var(--orange); letter-spacing: 1px; }
+
+  /* Category label */
+  .category-label {
+    font-size: 0.68em; letter-spacing: 3px; text-transform: uppercase; color: var(--orange); font-weight: 700;
+    margin-bottom: 12px; margin-top: 36px; display: flex; align-items: center; gap: 10px;
+  }
+  .category-label::after { content: ''; flex: 1; height: 1px; background: var(--orange-border); }
+
+  /* Rate grid */
+  .rate-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+
+  .rate-card {
+    background: var(--surface); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px;
+    padding: 18px 20px; cursor: pointer; transition: all 0.22s ease; position: relative; overflow: hidden;
+    animation: fadeUp 0.4s ease both;
+  }
+  .rate-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, var(--orange-dim) 0%, transparent 70%);
+    opacity: 0; transition: opacity 0.22s;
+  }
+  .rate-card:hover { border-color: var(--orange-border); transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+  .rate-card:hover::before { opacity: 1; }
+  .rate-card.selected { border-color: var(--orange); background: var(--surface2); transform: translateY(-3px); box-shadow: 0 0 0 1px var(--orange), 0 10px 30px rgba(230,106,5,0.15); }
+  .rate-card.selected::before { opacity: 1; }
+
+  .check { display: none; position: absolute; top: 12px; right: 12px; width: 20px; height: 20px; background: var(--orange); border-radius: 50%; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #fff; }
+  .rate-card.selected .check { display: flex; }
+
+  .svc-name { font-size: 0.82em; font-weight: 600; color: rgba(240,232,224,0.8); line-height: 1.35; margin-bottom: 10px; padding-right: 24px; position: relative; z-index: 1; }
+  .svc-price { font-family: 'Bebas Neue', cursive; font-size: 2em; color: var(--orange); letter-spacing: 1px; position: relative; z-index: 1; }
+
+  .deposit-note { margin-top: 24px; padding: 12px 18px; background: rgba(230,106,5,0.08); border-left: 3px solid var(--orange); border-radius: 0 8px 8px 0; font-size: 0.8em; color: var(--muted); line-height: 1.6; }
+  .deposit-note strong { color: var(--orange); }
+
+  /* Summary */
+  .summary-box { margin-top: 32px; background: var(--surface); border: 1px solid var(--orange-border); border-radius: 14px; overflow: hidden; display: none; animation: fadeUp 0.3s ease both; }
+  .summary-box.visible { display: block; }
+  .summary-header { background: var(--orange-dim); padding: 14px 22px; font-family: 'Bebas Neue', cursive; font-size: 1.1em; letter-spacing: 2px; color: var(--orange); border-bottom: 1px solid var(--orange-border); }
+  .summary-items { padding: 16px 22px; display: flex; flex-direction: column; gap: 8px; }
+  .summary-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.87em; color: var(--text); padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .summary-item:last-child { border-bottom: none; }
+  .summary-item .item-price { color: var(--orange); font-weight: 700; font-family: 'Bebas Neue', cursive; font-size: 1.1em; letter-spacing: 1px; }
+  .summary-totals { background: rgba(0,0,0,0.3); padding: 14px 22px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-top: 1px solid var(--orange-border); }
+  .total-block { display: flex; flex-direction: column; gap: 2px; }
+  .total-label { font-size: 0.68em; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+  .total-value { font-family: 'Bebas Neue', cursive; font-size: 2em; color: var(--orange); letter-spacing: 1px; }
+  .deposit-value { font-size: 1.4em; color: rgba(240,232,224,0.7); }
+
+  /* ======= AGREEMENT SECTION ======= */
+  .agreement-section {
+    margin-top: 48px;
+  }
+
+  .agreement-toggle {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--orange-border);
+    border-radius: 12px;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all 0.2s;
+    gap: 16px;
+  }
+  .agreement-toggle:hover {
+    background: var(--surface2);
+    border-color: var(--orange);
+  }
+  .agreement-toggle.open {
+    border-radius: 12px 12px 0 0;
+    border-color: var(--orange);
+    background: var(--surface2);
+  }
+  .toggle-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .toggle-icon {
+    width: 38px;
+    height: 38px;
+    background: var(--orange-dim);
+    border: 1px solid var(--orange-border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1em;
+    flex-shrink: 0;
+  }
+  .toggle-text strong {
+    display: block;
+    font-family: 'Bebas Neue', cursive;
+    font-size: 1.2em;
+    letter-spacing: 2px;
+    color: var(--text);
+  }
+  .toggle-text span {
+    font-size: 0.74em;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+  }
+  .toggle-arrow {
+    color: var(--orange);
+    font-size: 1.3em;
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+  }
+  .agreement-toggle.open .toggle-arrow {
+    transform: rotate(180deg);
+  }
+
+  .agreement-body {
+    background: var(--surface);
+    border: 1px solid var(--orange);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.5s ease;
+  }
+  .agreement-body.open {
+    max-height: 3000px;
+  }
+
+  .agreement-inner {
+    padding: 28px 28px 24px;
+  }
+
+  .agreement-intro {
+    font-size: 0.85em;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .agreement-intro strong {
+    color: var(--text);
+  }
+
+  .agreement-clause {
+    margin-bottom: 20px;
+  }
+  .clause-title {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 1em;
+    letter-spacing: 2px;
+    color: var(--orange);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .clause-num {
+    width: 22px;
+    height: 22px;
+    background: var(--orange);
+    color: #fff;
+    border-radius: 4px;
+    font-size: 0.75em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .clause-items {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .clause-items li {
+    font-size: 0.83em;
+    color: rgba(240,232,224,0.72);
+    line-height: 1.65;
+    padding-left: 16px;
+    position: relative;
+  }
+  .clause-items li::before {
+    content: '–';
+    position: absolute;
+    left: 0;
+    color: var(--orange);
+    font-weight: 700;
+  }
+
+  .agreement-footer-note {
+    margin-top: 24px;
+    padding: 14px 18px;
+    background: rgba(230,106,5,0.1);
+    border: 1px solid var(--orange-border);
+    border-radius: 8px;
+    font-size: 0.82em;
+    color: var(--text);
+    line-height: 1.65;
+    text-align: center;
+  }
+
+  /* Accept checkbox */
+  .accept-row {
+    margin-top: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 18px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .accept-row:hover { background: rgba(230,106,5,0.06); }
+  .accept-box {
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--orange-border);
+    border-radius: 5px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    margin-top: 1px;
+    background: transparent;
+  }
+  .accept-row.checked .accept-box {
+    background: var(--orange);
+    border-color: var(--orange);
+  }
+  .accept-checkmark {
+    display: none;
+    color: #fff;
+    font-size: 13px;
+    font-weight: bold;
+  }
+  .accept-row.checked .accept-checkmark { display: block; }
+  .accept-label {
+    font-size: 0.83em;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .accept-label strong { color: var(--text); }
+  .accept-badge {
+    display: none;
+    margin-top: 12px;
+    padding: 10px 16px;
+    background: rgba(37,211,102,0.1);
+    border: 1px solid rgba(37,211,102,0.3);
+    border-radius: 8px;
+    font-size: 0.8em;
+    color: var(--green);
+    text-align: center;
+    letter-spacing: 0.5px;
+    animation: fadeUp 0.3s ease both;
+  }
+  .accept-badge.visible { display: block; }
+
+  /* Booking form */
+  .booking-section { margin-top: 40px; }
+  .section-title { font-family: 'Bebas Neue', cursive; font-size: 1.8em; letter-spacing: 3px; color: var(--text); margin-bottom: 20px; display: flex; align-items: center; gap: 14px; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.08); }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .fg { display: flex; flex-direction: column; gap: 7px; }
+  .fg.span2 { grid-column: 1 / -1; }
+  .fg label { font-size: 0.7em; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  .fg input, .fg textarea { background: var(--surface); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px 16px; color: var(--text); font-family: 'Syne', sans-serif; font-size: 0.92em; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+  .fg input:focus, .fg textarea:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(230,106,5,0.12); }
+  .fg input::placeholder, .fg textarea::placeholder { color: rgba(240,232,224,0.2); }
+  .fg textarea { resize: vertical; min-height: 100px; }
+
+  .actions { margin-top: 22px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .btn-email { background: var(--orange); color: #fff; border: none; padding: 14px 32px; border-radius: 8px; font-family: 'Bebas Neue', cursive; font-size: 1.15em; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; flex: 1; min-width: 160px; }
+  .btn-email:hover { background: #bf5804; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(230,106,5,0.3); }
+  .btn-email:disabled { background: rgba(230,106,5,0.3); cursor: not-allowed; transform: none; box-shadow: none; }
+
+  .btn-wa { background: transparent; color: var(--green); border: 2px solid var(--green); padding: 12px 28px; border-radius: 8px; font-family: 'Bebas Neue', cursive; font-size: 1.15em; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; flex: 1; min-width: 160px; justify-content: center; }
+  .btn-wa:hover { background: var(--green); color: #fff; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(37,211,102,0.2); }
+  .btn-wa.disabled { border-color: rgba(37,211,102,0.3); color: rgba(37,211,102,0.3); cursor: not-allowed; pointer-events: none; }
+
+  .agree-warning {
+    margin-top: 12px;
+    font-size: 0.76em;
+    color: rgba(230,106,5,0.7);
+    display: none;
+    text-align: center;
+  }
+  .agree-warning.visible { display: block; }
+
+  /* Footer */
+  .footer { margin-top: 60px; text-align: center; color: var(--muted); font-size: 0.75em; letter-spacing: 1px; }
+  .footer a { color: var(--orange); text-decoration: none; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .rate-card:nth-child(1)  { animation-delay: 0.05s }
+  .rate-card:nth-child(2)  { animation-delay: 0.10s }
+  .rate-card:nth-child(3)  { animation-delay: 0.15s }
+  .rate-card:nth-child(4)  { animation-delay: 0.20s }
+  .rate-card:nth-child(5)  { animation-delay: 0.25s }
+  .rate-card:nth-child(6)  { animation-delay: 0.30s }
+  .rate-card:nth-child(7)  { animation-delay: 0.35s }
+  .rate-card:nth-child(8)  { animation-delay: 0.40s }
+
+  @media (max-width: 600px) {
+    .brand-name { font-size: 3em; }
+    .rate-grid { grid-template-columns: 1fr 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+    .fg.span2 { grid-column: 1; }
+    .agreement-inner { padding: 20px 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="brand">
+      <span class="brand-label">Sonic Flow</span>
+      <div class="brand-name">Jazzy.Mix</div>
+      <div class="brand-sub">Music Producer · Mix Engineer · Mastering Specialist</div>
+    </div>
+    <div class="header-tag">
+      <span>Rate Card</span>
+      <strong>2026</strong>
+    </div>
+  </div>
+
+  <!-- Mixing -->
+  <div class="category-label">Mixing</div>
+  <div class="rate-grid">
+    <div class="rate-card" onclick="toggle(this,'Single Track Mixing',290)">
+      <span class="check">✓</span>
+      <div class="svc-name">Single Track Mixing</div>
+      <div class="svc-price">$290</div>
+    </div>
+    <div class="rate-card" onclick="toggle(this,'EP Mixing (3–5 Tracks)',599)">
+      <span class="check">✓</span>
+      <div class="svc-name">EP Mixing (3–5 Tracks)</div>
+      <div class="svc-price">$599</div>
+    </div>
+    <div class="rate-card" onclick="toggle(this,'Album Mixing (6+ Tracks)',1299)">
+      <span class="check">✓</span>
+      <div class="svc-name">Album Mixing (6+ Tracks)</div>
+      <div class="svc-price">$1,299</div>
+    </div>
+  </div>
+
+  <!-- Mastering -->
+  <div class="category-label">Mastering</div>
+  <div class="rate-grid">
+    <div class="rate-card" onclick="toggle(this,'Single Track Mastering',110)">
+      <span class="check">✓</span>
+      <div class="svc-name">Single Track Mastering</div>
+      <div class="svc-price">$110</div>
+    </div>
+    <div class="rate-card" onclick="toggle(this,'EP Mastering (3–5 Tracks)',549)">
+      <span class="check">✓</span>
+      <div class="svc-name">EP Mastering (3–5 Tracks)</div>
+      <div class="svc-price">$549</div>
+    </div>
+    <div class="rate-card" onclick="toggle(this,'Album Mastering (6+ Tracks)',659)">
+      <span class="check">✓</span>
+      <div class="svc-name">Album Mastering (6+ Tracks)</div>
+      <div class="svc-price">$659</div>
+    </div>
+  </div>
+
+  <!-- Production -->
+  <div class="category-label">Production</div>
+  <div class="rate-grid">
+    <div class="rate-card" onclick="toggle(this,'Beat Production (Instrumental)',200)">
+      <span class="check">✓</span>
+      <div class="svc-name">Beat Production (Instrumental)</div>
+      <div class="svc-price">$200</div>
+    </div>
+    <div class="rate-card" onclick="toggle(this,'Full Song Production',400)">
+      <span class="check">✓</span>
+      <div class="svc-name">Full Song Production</div>
+      <div class="svc-price">$400</div>
+    </div>
+    <div class="rate-card" onclick="toggle(this,'Full Song Prod + Mix & Master',549)">
+      <span class="check">✓</span>
+      <div class="svc-name">Full Song Prod + Mix & Master</div>
+      <div class="svc-price">$549</div>
+    </div>
+    <div class="rate-card" onclick="toggle(this,'Recording Session (Per Hour)',50)">
+      <span class="check">✓</span>
+      <div class="svc-name">Recording Session</div>
+      <div class="svc-price">$50<span style="font-size:0.5em;letter-spacing:1px">/HR</span></div>
+    </div>
+  </div>
+
+  <div class="deposit-note">
+    💡 Prices are flexible and tailored per project. A <strong>50% deposit</strong> is required to confirm your booking and secure our services.
+  </div>
+
+  <!-- Summary -->
+  <div class="summary-box" id="summary-box">
+    <div class="summary-header">📋 Your Selection</div>
+    <div class="summary-items" id="summary-items"></div>
+    <div class="summary-totals">
+      <div class="total-block">
+        <span class="total-label">Total</span>
+        <span class="total-value" id="total-val">$0</span>
+      </div>
+      <div class="total-block" style="text-align:right;">
+        <span class="total-label">30% Deposit to Book</span>
+        <span class="total-value deposit-value" id="deposit-val">$0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== CLIENT AGREEMENT ====== -->
+  <div class="agreement-section">
+    <button class="agreement-toggle" id="agreementToggle" onclick="toggleAgreement()">
+      <div class="toggle-left">
+        <div class="toggle-icon">📄</div>
+        <div class="toggle-text">
+          <strong>Client Service Agreement</strong>
+          <span>Please read before booking — tap to expand</span>
+        </div>
+      </div>
+      <div class="toggle-arrow">▼</div>
+    </button>
+
+    <div class="agreement-body" id="agreementBody">
+      <div class="agreement-inner">
+        <div class="agreement-intro">
+          <strong>Moses Samson Seun</strong> — Audio Engineer · Music Producer · Mix & Mastering<br><br>
+          Thank you for choosing to work with me. Please review the terms below carefully.
+          Proceeding with payment, communication, or submission of materials indicates full agreement.
+        </div>
+
+        <!-- Clauses -->
+        <div class="agreement-clause">
+          <div class="clause-title"><span class="clause-num">1</span> Payment</div>
+          <ul class="clause-items">
+            <li>A non-refundable deposit (typically 50%) is required before work begins.</li>
+            <li>The remaining balance must be paid in full before final files are delivered.</li>
+            <li>Pricing is agreed upfront based on project scope. Additional work may require a revised quote.</li>
+            <li>Work will not begin until the deposit is received and confirmed.</li>
+          </ul>
+        </div>
+
+        <div class="agreement-clause">
+          <div class="clause-title"><span class="clause-num">2</span> Revisions</div>
+          <ul class="clause-items">
+            <li>Each project includes a limited number of revisions (typically 2–3 rounds unless otherwise agreed).</li>
+            <li>Additional revisions beyond this may incur extra charges.</li>
+            <li>Revisions must stay within the original direction. Major changes may be treated as a new project.</li>
+            <li>All revision requests should be submitted clearly and in one message where possible.</li>
+          </ul>
+        </div>
+
+        <div class="agreement-clause">
+          <div class="clause-title"><span class="clause-num">3</span> Delivery</div>
+          <ul class="clause-items">
+            <li>Final files are delivered after full payment is completed.</li>
+            <li>Delivery timelines are estimates and depend on communication, feedback, and material quality.</li>
+            <li>Project/session files and stems are not included unless agreed in advance.</li>
+            <li>Files should be reviewed within 7 days of delivery.</li>
+          </ul>
+        </div>
+
+        <div class="agreement-clause">
+          <div class="clause-title"><span class="clause-num">4</span> Ownership & Usage</div>
+          <ul class="clause-items">
+            <li>Mixing & Mastering: Once full payment is made, the client owns the final audio files. No royalties or ongoing fees apply.</li>
+            <li>Music Production: Rights, ownership, and any royalty splits will only be discussed if the client intends to commercially release the work.</li>
+            <li>No fixed royalty percentages are implied in this agreement.</li>
+            <li>The producer may use parts of the work for portfolio or promotional purposes unless agreed otherwise in writing.</li>
+          </ul>
+        </div>
+
+        <div class="agreement-clause">
+          <div class="clause-title"><span class="clause-num">5</span> Credits</div>
+          <ul class="clause-items">
+            <li>Credit is appreciated on released work (e.g., "Produced by", "Mixed by", "Mastered by").</li>
+          </ul>
+        </div>
+
+        <div class="agreement-clause">
+          <div class="clause-title"><span class="clause-num">6</span> Intellectual Property</div>
+          <ul class="clause-items">
+            <li>All original creative materials remain the intellectual property of the producer unless otherwise agreed in writing.</li>
+            <li>Clients are granted rights to use the final delivered work after full payment.</li>
+            <li>Commercial use of produced material may require a separate agreement if not already defined.</li>
+            <li>Unpaid or unfinished work may not be used, distributed, or exploited in any way.</li>
+          </ul>
+        </div>
+
+        <div class="agreement-clause">
+          <div class="clause-title"><span class="clause-num">7</span> Cancellation & Refunds</div>
+          <ul class="clause-items">
+            <li>Deposits are non-refundable once work has started.</li>
+            <li>If cancellation occurs before work begins, the deposit may be credited toward a future project at my discretion.</li>
+            <li>No refunds are issued for completed or delivered work.</li>
+          </ul>
+        </div>
+
+        <div class="agreement-clause">
+          <div class="clause-title"><span class="clause-num">8</span> Client Responsibilities</div>
+          <ul class="clause-items">
+            <li>The client must provide all necessary files (stems, references, etc.) in the correct format.</li>
+            <li>The client confirms they have the legal right to use all submitted materials.</li>
+            <li>Delays in communication or missing materials may affect timelines.</li>
+          </ul>
+        </div>
+
+        <div class="agreement-clause">
+          <div class="clause-title"><span class="clause-num">9</span> Confidentiality</div>
+          <ul class="clause-items">
+            <li>All unreleased material and project details will be kept confidential.</li>
+            <li>Nothing will be shared publicly before the client's official release without permission.</li>
+          </ul>
+        </div>
+
+        <div class="agreement-clause">
+          <div class="clause-title"><span class="clause-num">10</span> Agreement</div>
+          <ul class="clause-items">
+            <li>Proceeding with payment, sending files, or continuing communication confirms acceptance of these terms.</li>
+            <li>This agreement represents the full understanding between both parties.</li>
+          </ul>
+        </div>
+
+        <div class="agreement-footer-note">
+          By proceeding with this project in any form — responding, paying, or submitting materials — you confirm that you have read, understood, and agreed to all terms above.
+        </div>
+
+        <!-- Accept checkbox -->
+        <div class="accept-row" id="acceptRow" onclick="toggleAccept()">
+          <div class="accept-box">
+            <span class="accept-checkmark">✓</span>
+          </div>
+          <div class="accept-label">
+            <strong>I have read and agree to all terms of this Client Service Agreement.</strong><br>
+            I understand that proceeding with a booking constitutes acceptance of the above terms.
+          </div>
+        </div>
+        <div class="accept-badge" id="acceptBadge">✅ Agreement accepted — you're good to book!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Booking Form -->
+  <div class="booking-section">
+    <div class="section-title">Book a Session</div>
+    <div class="form-grid">
+      <div class="fg">
+        <label>Your Name</label>
+        <input type="text" id="f-name" placeholder="e.g. John Doe" />
+      </div>
+      <div class="fg">
+        <label>Email Address</label>
+        <input type="email" id="f-email" placeholder="your@email.com" />
+      </div>
+      <div class="fg">
+        <label>Phone / WhatsApp</label>
+        <input type="tel" id="f-phone" placeholder="+254 ..." />
+      </div>
+      <div class="fg">
+        <label>Genre / Style</label>
+        <input type="text" id="f-genre" placeholder="e.g. Afrobeats, R&B, Gospel..." />
+      </div>
+      <div class="fg span2">
+        <label>Project Details</label>
+        <textarea id="f-msg" placeholder="Tell me about your project — vibe, deadline, references, number of tracks..."></textarea>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-email" id="btn-email" onclick="sendEmail()">📧 Send Booking Request</button>
+      <a class="btn-wa disabled" id="btn-wa" href="#" onclick="sendWhatsApp(event)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Book via WhatsApp
+      </a>
+    </div>
+    <div class="agree-warning" id="agree-warning">⚠️ Please read and accept the Client Service Agreement above before booking.</div>
+  </div>
+
+  <div class="footer">
+    <p>© 2026 Jazzy.Mix · <a href="mailto:Jazzymixway@gmail.com">Jazzymixway@gmail.com</a> ·
+      <a href="https://instagram.com/jazzy.mix" target="_blank" style="display:inline-flex;align-items:center;gap:5px;vertical-align:middle;text-decoration:none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;vertical-align:middle;">
+          <defs>
+            <linearGradient id="ig-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#f09433"/>
+              <stop offset="25%" style="stop-color:#e6683c"/>
+              <stop offset="50%" style="stop-color:#dc2743"/>
+              <stop offset="75%" style="stop-color:#cc2366"/>
+              <stop offset="100%" style="stop-color:#bc1888"/>
+            </linearGradient>
+          </defs>
+          <rect x="2" y="2" width="20" height="20" rx="5" ry="5" fill="url(#ig-grad)"/>
+          <circle cx="12" cy="12" r="4" fill="none" stroke="white" stroke-width="1.8"/>
+          <circle cx="17.5" cy="6.5" r="1.2" fill="white"/>
+        </svg>
+        @jazzy.mix
+      </a>
+    </p>
+    <p style="margin-top:6px; font-size:0.9em;">Tap any service card to select it. Select multiple for a combined quote.</p>
+  </div>
+
+</div>
+
+<script>
+  const cart = {};
+  let agreed = false;
+
+  function toggle(card, name, price) {
+    if (cart[name]) {
+      delete cart[name];
+      card.classList.remove('selected');
+    } else {
+      cart[name] = price;
+      card.classList.add('selected');
+    }
+    renderSummary();
+  }
+
+  function renderSummary() {
+    const keys = Object.keys(cart);
+    const box = document.getElementById('summary-box');
+    const items = document.getElementById('summary-items');
+    if (!keys.length) { box.classList.remove('visible'); return; }
+    box.classList.add('visible');
+    let total = 0;
+    items.innerHTML = keys.map(k => {
+      total += cart[k];
+      return `<div class="summary-item"><span>${k}</span><span class="item-price">$${cart[k]}</span></div>`;
+    }).join('');
+    document.getElementById('total-val').textContent = '$' + total;
+    document.getElementById('deposit-val').textContent = '$' + (total * 0.3).toFixed(2);
+  }
+
+  function toggleAgreement() {
+    const toggle = document.getElementById('agreementToggle');
+    const body = document.getElementById('agreementBody');
+    toggle.classList.toggle('open');
+    body.classList.toggle('open');
+  }
+
+  function toggleAccept() {
+    const row = document.getElementById('acceptRow');
+    const badge = document.getElementById('acceptBadge');
+    const emailBtn = document.getElementById('btn-email');
+    const waBtn = document.getElementById('btn-wa');
+    const warning = document.getElementById('agree-warning');
+
+    agreed = !agreed;
+    row.classList.toggle('checked', agreed);
+    badge.classList.toggle('visible', agreed);
+    emailBtn.disabled = !agreed;
+    waBtn.classList.toggle('disabled', !agreed);
+    warning.classList.toggle('visible', false);
+  }
+
+  function getData() {
+    const keys = Object.keys(cart);
+    const total = keys.reduce((s, k) => s + cart[k], 0);
+    return {
+      name:     document.getElementById('f-name').value.trim(),
+      email:    document.getElementById('f-email').value.trim(),
+      phone:    document.getElementById('f-phone').value.trim(),
+      genre:    document.getElementById('f-genre').value.trim(),
+      msg:      document.getElementById('f-msg').value.trim(),
+      services: keys,
+      total,
+      deposit:  (total * 0.3).toFixed(2)
+    };
+  }
+
+  function sendEmail() {
+    if (!agreed) {
+      document.getElementById('agree-warning').classList.add('visible');
+      document.getElementById('agreementToggle').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    const d = getData();
+    if (!d.name || !d.email) { alert('Please enter your name and email.'); return; }
+    if (!d.services.length) { alert('Please select at least one service.'); return; }
+    const list = d.services.map((s, i) => `  ${i+1}. ${s} — $${cart[s]}`).join('\n');
+    const subject = encodeURIComponent('Booking Request — Jazzy.Mix');
+    const body = encodeURIComponent(
+      'Hi Jazzy.Mix,\n\n' +
+      'I would like to book the following service(s):\n\n' + list + '\n\n' +
+      'Total: $' + d.total + '\n' +
+      '30% Deposit: $' + d.deposit + '\n\n' +
+      '— My Details —\n' +
+      'Name: ' + d.name + '\n' +
+      'Email: ' + d.email + '\n' +
+      'Phone/WhatsApp: ' + (d.phone || 'Not provided') + '\n' +
+      'Genre/Style: ' + (d.genre || 'Not specified') + '\n\n' +
+      'Project Details:\n' + (d.msg || 'No additional details provided.') + '\n\n' +
+      '✅ I have read and agreed to the Client Service Agreement.\n\n' +
+      'Looking forward to working with you!'
+    );
+    window.location.href = 'mailto:psalmjazzymix001@yahoo.com?subject=' + subject + '&body=' + body;
+  }
+
+  function sendWhatsApp(e) {
+    e.preventDefault();
+    if (!agreed) {
+      document.getElementById('agree-warning').classList.add('visible');
+      document.getElementById('agreementToggle').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    const d = getData();
+    if (!d.services.length) { alert('Please select at least one service.'); return; }
+    const list = d.services.map((s, i) => `  ${i+1}. ${s} — $${cart[s]}`).join('\n');
+    const text = encodeURIComponent(
+      'Hi Jazzy.Mix! 👋\n\n' +
+      'I found your rate card and would like to book:\n\n' +
+      list + '\n\n' +
+      '💵 *Total:* $' + d.total + '\n' +
+      '💳 *30% Deposit:* $' + d.deposit + '\n\n' +
+      (d.name  ? '👤 *Name:* ' + d.name + '\n' : '') +
+      (d.phone ? '📞 *Phone:* ' + d.phone + '\n' : '') +
+      (d.genre ? '🎵 *Genre:* ' + d.genre + '\n' : '') +
+      (d.msg   ? '\n📝 *Project Details:*\n' + d.msg : '') +
+      '\n\n✅ I have read and agreed to the Client Service Agreement.' +
+      '\n\nLooking forward to working together!'
+    );
+    window.open('https://wa.me/254111925802?text=' + text, '_blank');
+  }
+
+  // Buttons start disabled until agreement accepted
+  document.getElementById('btn-email').disabled = true;
+</script>
+</body>
+</html>
